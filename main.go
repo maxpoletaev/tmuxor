@@ -24,7 +24,7 @@ type Session struct {
 	WorkDir       string   `yaml:"workdir"`
 	Windows       []Window `yaml:"windows"`
 	Detached      bool     `yaml:"detached"`
-	DefaultWindow string   `yaml:"default_window"`
+	StartupWindow string   `yaml:"startup_window"`
 }
 
 // Config is a root element of YAML file
@@ -84,8 +84,8 @@ func CleanConfig(config *Config) error {
 		}
 	}
 
-	if session.DefaultWindow == "" {
-		session.DefaultWindow = session.Windows[0].Name
+	if session.StartupWindow == "" {
+		session.StartupWindow = session.Windows[0].Name
 	}
 	if session.WorkDir == "" {
 		session.WorkDir = GetWorkingDir()
@@ -144,8 +144,8 @@ func main() {
 		}
 	}
 
-	if session.DefaultWindow != "" {
-		tmux.SelectWindow(session.Name, session.DefaultWindow)
+	if session.StartupWindow != "" {
+		tmux.SelectWindow(session.Name, session.StartupWindow)
 	}
 
 	if !session.Detached {

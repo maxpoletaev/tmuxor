@@ -1,0 +1,13 @@
+session:
+  name: sess
+
+  windows:
+    - name: win1
+      cmd: |
+        sleep 5
+        echo "hello"
+
+    - name: win2
+      cmd: |
+        sleep 10
+        echo "world"

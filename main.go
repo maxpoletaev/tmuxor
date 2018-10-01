@@ -60,17 +60,16 @@ func ReadConfig(configName string) (config Config, err error) {
 
 // CleanConfig checks that all the properties filled properly and provides default values
 func CleanConfig(config *Config) error {
-	session := config.Session
+	session := &config.Session
+
 	if session.Name == "" {
 		return errors.New("Session should contain name (key: session.name)")
 	}
 	if len(session.Windows) == 0 {
 		return errors.New("Session should contain at leat one window (key: session.windows)")
 	}
-	if session.WorkDir == "" {
-		session.WorkDir = GetWorkingDir()
-	}
 
+	windowSet := map[string]bool{}
 	for i, window := range session.Windows {
 		if window.Name == "" {
 			return errors.Errorf("Window should contain name (key: session.windows.%d.name)", i)
@@ -78,6 +77,18 @@ func CleanConfig(config *Config) error {
 		if window.Cmd == "" {
 			return errors.Errorf("Window should contain command (key: session.windows.%d.cmd)", i)
 		}
+		if _, ok := windowSet[window.Name]; !ok {
+			windowSet[window.Name] = true
+		} else {
+			return errors.Errorf("Window name should be unique across the session (key: session.windows.%d.name)", i)
+		}
+	}
+
+	if session.DefaultWindow == "" {
+		session.DefaultWindow = session.Windows[0].Name
+	}
+	if session.WorkDir == "" {
+		session.WorkDir = GetWorkingDir()
 	}
 
 	return nil
@@ -105,20 +116,26 @@ func main() {
 
 	tmux := NewTmux()
 	session := config.Session
-	err = tmux.StartSession(session.Name)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, window := range session.Windows {
+	for i, window := range session.Windows {
 		workDir := session.WorkDir
 		if window.WorkDir != "" {
 			workDir = window.WorkDir
 		}
 
-		err = tmux.CreateWindow(session.Name, window.Name, workDir)
-		if err != nil {
-			log.Fatal(err)
+		if i == 0 {
+			err = tmux.NewSession(session.Name, workDir, window.Name)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			err = tmux.CreateWindow(session.Name, window.Name, workDir)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		err = tmux.Exec(session.Name, window.Name, window.Cmd)

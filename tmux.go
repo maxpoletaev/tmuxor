@@ -2,30 +2,53 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"os"
 	"os/exec"
 )
 
-// StartTmuxSession created detached tmux session with
-// with given name if it does not exist
-func StartTmuxSession(name string) {
-	err := exec.Command("tmux", "new-session", "-d", "-t", name).Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+// Tmux is a binding to tmux
+type Tmux struct {
+	TmuxCmd string
 }
 
-func CreateTmuxWindow(session string, name string, path string) {
-	err := exec.Command("tmux", "new-window", "-t", session, "-n", name, "-c", path).Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+// NewTmux createas a new tmux binding
+func NewTmux() *Tmux {
+	tmux := &Tmux{"tmux"}
+	return tmux
 }
 
-func RunTmuxCommand(session, window, command string) {
+// StartSession creates a detached tmux session with with given name if it does not exist
+func (t *Tmux) StartSession(name string) error {
+	err := exec.Command(t.TmuxCmd, "new-session", "-d", "-t", name).Run()
+	return err
+}
+
+// CreateWindow creates a window inside a tmux session with given name
+func (t *Tmux) CreateWindow(session string, name string, path string) error {
+	err := exec.Command(t.TmuxCmd, "new-window", "-t", session, "-n", name, "-c", path).Run()
+	return err
+}
+
+// Exec executes a command inside a tmux window
+func (t *Tmux) Exec(session, window, command string) error {
 	pane := fmt.Sprintf("%s:%s.%d", session, window, 0)
-	err := exec.Command("tmux", "send-keys", "-t", pane, command, "C-m").Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	err := exec.Command(t.TmuxCmd, "send-keys", "-t", pane, command, "C-m").Run()
+	return err
+}
+
+// SelectWindow selects window inside a tmux session
+func (t *Tmux) SelectWindow(session, window string) error {
+	path := fmt.Sprintf("%s:%s", session, window)
+	err := exec.Command(t.TmuxCmd, "select-window", "-t", path).Run()
+	return err
+}
+
+// Attach attaches you to the tmux session
+func (t *Tmux) Attach(session string) error {
+	cmd := exec.Command(t.TmuxCmd, "attach-session", "-t", session)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	err := cmd.Run()
+	return err
 }

@@ -1,5 +1,7 @@
 session:
   name: sess
+  detached: false
+  startup_window: win1
 
   windows:
     - name: win1

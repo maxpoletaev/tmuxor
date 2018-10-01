@@ -1,6 +1,6 @@
 # Tmuxor
 
-Tmuxor was inspired by a wonderful project called [tmuxinator](https://github.com/tmuxinator/tmuxinator) and provides alternative way to describe tmux sessions in a single yaml file to run them with one click.
+Tmuxor was inspired by a wonderful project called [tmuxinator](https://github.com/tmuxinator/tmuxinator) and provides an alternative way to describe tmux sessions in a single yaml file to run them with one click.
 
 ## Why not tmuxinator?
 
